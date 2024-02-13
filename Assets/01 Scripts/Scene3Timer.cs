@@ -25,8 +25,8 @@ public class Scene3Timer : MonoBehaviourPunCallbacks
     public TMP_Text liveText1;
     public TMP_Text liveText2;
     public TMP_Text liveText3;
-
-
+    public static bool RuleDescriptEnd = false;
+    public TMP_Text PressEText;
 
 
     private CanvasGroup canvasGroup1;
@@ -48,6 +48,7 @@ public class Scene3Timer : MonoBehaviourPunCallbacks
 
     void Awake()
     {
+
         Image1.SetActive(false);
         Image2.SetActive(false);
         Image3.SetActive(false);
@@ -112,23 +113,8 @@ public class Scene3Timer : MonoBehaviourPunCallbacks
             if (time <= 0)
             {
                 PV.RPC("ShowTimer", RpcTarget.All, time); //1초 마다 방 모두에게 전달
-                Sit.SetActive(false);
-                Sit2.SetActive(false);
-                Rule1.SetActive(true);
-                liveText1.gameObject.SetActive(true);
-                liveText2.gameObject.SetActive(true);
 
-                StartCoroutine(FadeCanvasGroup(ruleText1, 0f, 1f, fadeDuration));
-                StartCoroutine(FadeCanvasGroup(ruleText2, 0f, 1f, fadeDuration));
-
-                yield return new WaitForSeconds(4);
-                liveText3.gameObject.SetActive(true);
-                StartCoroutine(FadeCanvasGroup(ruleText3, 0f, 1f, fadeDuration));
-
-                yield return new WaitForSeconds(4);
-                liveText1.gameObject.SetActive(false);
-                liveText2.gameObject.SetActive(false);
-
+                StartCoroutine(RuleDescript());
 
 
 
@@ -168,7 +154,7 @@ public class Scene3Timer : MonoBehaviourPunCallbacks
 
     IEnumerator EndGameSequence()
     {
-
+        PressEText.gameObject.SetActive(false);
         Image1.SetActive(true);
         StartCoroutine(FadeCanvasGroup(canvasGroup1, 0f, 1f, fadeDuration));
         yield return new WaitForSeconds(4);
@@ -230,5 +216,26 @@ public class Scene3Timer : MonoBehaviourPunCallbacks
         cg.alpha = end;
     }
 
+    private IEnumerator RuleDescript()
+    {
+        Sit.SetActive(false);
+        Sit2.SetActive(false);
+        Rule1.SetActive(true);
+        liveText1.gameObject.SetActive(true);
+        liveText2.gameObject.SetActive(true);
+
+        StartCoroutine(FadeCanvasGroup(ruleText1, 0f, 1f, fadeDuration));
+        StartCoroutine(FadeCanvasGroup(ruleText2, 0f, 1f, fadeDuration));
+
+        yield return new WaitForSeconds(6);
+        liveText2.gameObject.SetActive(false);
+
+        liveText3.gameObject.SetActive(true);
+        StartCoroutine(FadeCanvasGroup(ruleText3, 0f, 1f, fadeDuration));
+
+        yield return new WaitForSeconds(6);
+        Rule1.SetActive(false);
+        RuleDescriptEnd = true;
+    }
 }
     

@@ -100,6 +100,19 @@ public class Scene3Rule : MonoBehaviour
                 }
             }
         }
+        if (Scene3Timer.RuleDescriptEnd)
+        {
+            PressE.SetActive(false);
+            Sit.SetActive(false);
+            Sit2.SetActive(false);
+            HiddenRule1.SetActive(false);
+            HiddenRule2.SetActive(false);
+            HiddenRule3.SetActive(false);
+            HiddenRule4.SetActive(false);
+            SpecialRule1.SetActive(false);
+            SpecialRule2.SetActive(false);
+            SpecialRule3.SetActive(false);
+        }
     }
     private void OnCollisionExit(Collision collision)
     {
