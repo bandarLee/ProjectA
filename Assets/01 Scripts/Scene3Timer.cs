@@ -8,6 +8,7 @@ using TMPro;
 using Unity.VisualScripting;
 using UnityEngine.SceneManagement;
 using ExitGames.Client.Photon;
+using System;
 
 public class Scene3Timer : MonoBehaviourPunCallbacks
 {
@@ -35,6 +36,8 @@ public class Scene3Timer : MonoBehaviourPunCallbacks
     private CanvasGroup canvasGroup4;
     private CanvasGroup canvasGroup5;
 
+    public TextMeshProUGUI InputArea;
+    public int ValueInput;
 
     private CanvasGroup ruleText1;
     private CanvasGroup ruleText2;
@@ -43,6 +46,11 @@ public class Scene3Timer : MonoBehaviourPunCallbacks
     public float fadeDuration = 1f; // 페이드 지속 시간
     public TMP_Text DeathEnding;
     List<string> deathPlayersInfo = new List<string>();
+
+    public GameObject Round1Question;
+    public GameObject Round2Question;
+    public GameObject Round3Question;
+    public GameObject Round4Question;
 
     public PhotonView PV;
 
@@ -66,6 +74,7 @@ public class Scene3Timer : MonoBehaviourPunCallbacks
         ruleText1 = liveText1.GetComponent<CanvasGroup>();
         ruleText2 = liveText2.GetComponent<CanvasGroup>();
         ruleText3 = liveText3.GetComponent<CanvasGroup>();
+        Round1Question.SetActive(false);
 
 
     }
@@ -76,7 +85,6 @@ public class Scene3Timer : MonoBehaviourPunCallbacks
 
 
     }
-    Coroutine timerCoroutine;
 
     void StartTimer()
     {
@@ -84,8 +92,11 @@ public class Scene3Timer : MonoBehaviourPunCallbacks
         {
             time = 30;
 
-            StartCoroutine(TimerCoroution());
+            StartCoroutine(TimerCoroution(30, () => StartCoroutine(RuleDescript())));
+
         }
+
+       
     }
     [PunRPC]
     void StartEndGameSequence()
@@ -93,7 +104,7 @@ public class Scene3Timer : MonoBehaviourPunCallbacks
         StartCoroutine(EndGameSequence());
     }
 
-    IEnumerator TimerCoroution()
+    IEnumerator TimerCoroution(int duration, Action onComplete)
     {
         var wait = new WaitForSeconds(1f);
 
@@ -113,8 +124,6 @@ public class Scene3Timer : MonoBehaviourPunCallbacks
             if (time <= 0)
             {
                 PV.RPC("ShowTimer", RpcTarget.All, time); //1초 마다 방 모두에게 전달
-
-                StartCoroutine(RuleDescript());
 
 
 
@@ -236,6 +245,8 @@ public class Scene3Timer : MonoBehaviourPunCallbacks
         yield return new WaitForSeconds(6);
         Rule1.SetActive(false);
         RuleDescriptEnd = true;
+        Round1Question.SetActive(true);
+
     }
 }
     
