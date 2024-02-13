@@ -1,0 +1,17 @@
+fileFormatVersion: 2
+guid: 2ec7c3ed47fc52f45b963977efa271cc
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - Image1: {fileID: 100012, guid: 1ec55baed88ac07429a52bee4c519015, type: 3}
+  - Image2: {instanceID: 0}
+  - Image3: {instanceID: 0}
+  - Image4: {instanceID: 0}
+  - timerText: {instanceID: 0}
+  - PV: {instanceID: 0}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

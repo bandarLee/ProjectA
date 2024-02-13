@@ -1,0 +1,15 @@
+diff --git a/.gitignore b/.gitignore
+index 7a5cd83..5e6e69c 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -69,4 +69,8 @@ crashlytics-build.properties
+ 
+ # Temporary auto-generated Android Assets
+ /[Aa]ssets/[Ss]treamingAssets/aa.meta
+-/[Aa]ssets/[Ss]treamingAssets/aa/*
+\ No newline at end of file
++<<<<<<< HEAD
++/[Aa]ssets/[Ss]treamingAssets/aa/*
++=======
++/[Aa]ssets/[Ss]treamingAssets/aa/*
++>>>>>>> 389eb08 (Initial commit)
