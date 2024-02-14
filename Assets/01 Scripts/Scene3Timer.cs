@@ -35,7 +35,6 @@ public class Scene3Timer : MonoBehaviourPunCallbacks
     private CanvasGroup canvasGroup4;
     private CanvasGroup canvasGroup5;
 
-    public TextMeshProUGUI InputArea;
 
     private CanvasGroup ruleText1;
     private CanvasGroup ruleText2;
@@ -46,12 +45,20 @@ public class Scene3Timer : MonoBehaviourPunCallbacks
     List<string> deathPlayersInfo = new List<string>();
 
     public GameObject Round1Question;
-    public GameObject Round2Question;
-    public GameObject Round3Question;
-    public GameObject Round4Question;
+    public GameObject Round1Result;
 
+    public GameObject Roundwait;
+
+    public GameObject[] Round1Text;
+    public TMP_Text[] Playername;
+    public TMP_Text[] Playernumber;
+    public TMP_Text resultnumber;
+    public TMP_Text resultnotice;
+
+    public GameObject[] RoundTitles;
+    private bool timerEnded = false; 
     public TMP_Text PlayerInputField;
-
+    
     public PhotonView PV;
 
     void Awake()
@@ -75,11 +82,12 @@ public class Scene3Timer : MonoBehaviourPunCallbacks
         ruleText2 = liveText2.GetComponent<CanvasGroup>();
         ruleText3 = liveText3.GetComponent<CanvasGroup>();
         Round1Question.SetActive(false);
+        Round1Result.SetActive(false);
 
 
-    }
+}
 
-    void Start()
+void Start()
     {
         StartCoroutine(GameSequence());
 
@@ -89,6 +97,23 @@ public class Scene3Timer : MonoBehaviourPunCallbacks
     {
         yield return StartCoroutine(TimerCoroutine(30)); 
         yield return StartCoroutine(RuleDescript());
+        yield return PrepareForRound();
+        yield return StartCoroutine(TimerCoroutine(30));
+        yield return StartCoroutine(RoundGame(2));
+        yield return PrepareForRound();
+
+        yield return StartCoroutine(TimerCoroutine(30));
+        yield return StartCoroutine(RoundGame(3));
+        yield return PrepareForRound();
+
+        yield return StartCoroutine(TimerCoroutine(30));
+        yield return StartCoroutine(RoundGame(4));
+        yield return PrepareForRound();
+
+        yield return StartCoroutine(TimerCoroutine(30));
+        yield return StartCoroutine(RoundGame(5));
+        yield return PrepareForRound();
+
         yield return StartCoroutine(TimerCoroutine(30));
 
 
@@ -103,11 +128,11 @@ public class Scene3Timer : MonoBehaviourPunCallbacks
 
     IEnumerator TimerCoroutine(int duration)
     {
+        timerEnded = false;
+        var wait = new WaitForSeconds(1f);
+
         if (PhotonNetwork.IsMasterClient)
         {
-
-            var wait = new WaitForSeconds(1f);
-
             while (duration > 0)
             {
                 PV.RPC("ShowTimer", RpcTarget.All, duration);
@@ -116,37 +141,50 @@ public class Scene3Timer : MonoBehaviourPunCallbacks
             }
 
             PV.RPC("ShowTimer", RpcTarget.All, duration); // 마지막 시간 업데이트
+            PV.RPC("NotifyTimerEnd", RpcTarget.All); // 모든 클라이언트에 타이머 종료 알림
+        }
+        else
+        {
+            // 마스터 클라이언트가 아닌 경우, 마스터 클라이언트의 타이머 종료 알림을 기다립니다.
+            yield return new WaitUntil(() => timerEnded); // `timerEnded`는 타이머 종료 상태를 나타내는 bool 변수입니다.
+        }
+    
 
-            // 타이머가 끝나면 룰 설명 시작
-
-
-
-
-            /*foreach (Player player in PhotonNetwork.PlayerList)
-            {
-                if ((int)player.CustomProperties["Scene3sitorder"] == 0)
-                {
-                    string personality = player.CustomProperties["Personality"] as string;
-                    string nickname = player.NickName as string;
-
-
-                    deathPlayersInfo.Add("자칭 " + personality + " " + nickname + ",\n");
-
-
-                }
-
-
-            }
-            string deathPlayersStr = string.Join("\n", deathPlayersInfo);
-
-            PV.RPC("UpdateDeathPlayersInfo", RpcTarget.AllBuffered, deathPlayersStr);
+    // 타이머가 끝나면 룰 설명 시작
 
 
 
-            PV.RPC("StartEndGameSequence", RpcTarget.All);*/
+
+    /*foreach (Player player in PhotonNetwork.PlayerList)
+    {
+        if ((int)player.CustomProperties["Scene3sitorder"] == 0)
+        {
+            string personality = player.CustomProperties["Personality"] as string;
+            string nickname = player.NickName as string;
+
+
+            deathPlayersInfo.Add("자칭 " + personality + " " + nickname + ",\n");
+
 
         }
 
+
+    }
+    string deathPlayersStr = string.Join("\n", deathPlayersInfo);
+
+    PV.RPC("UpdateDeathPlayersInfo", RpcTarget.AllBuffered, deathPlayersStr);
+
+
+
+    PV.RPC("StartEndGameSequence", RpcTarget.All);*/
+
+}
+
+    [PunRPC]
+    void NotifyTimerEnd()
+    {
+        timerEnded = true; // 모든 클라이언트에서 타이머가 끝났음을 나타내는 변수를 true로 설정합니다.
+                           // 필요한 경우, 여기에서 다음 단계로 진행하는 로직을 구현할 수도 있습니다.
     }
     [PunRPC]
 
@@ -236,6 +274,12 @@ public class Scene3Timer : MonoBehaviourPunCallbacks
         Rule1.SetActive(false);
         RuleDescriptEnd = true;
         Round1Question.SetActive(true);
+        Roundwait.SetActive(false);
+        foreach (GameObject title in RoundTitles)
+        {
+            title.SetActive(false);
+        }
+        RoundTitles[0].SetActive(true);
         timerText.gameObject.SetActive(true);
 
 
@@ -245,8 +289,6 @@ public class Scene3Timer : MonoBehaviourPunCallbacks
     {
         ExitGames.Client.Photon.Hashtable playerPickNumbers = new ExitGames.Client.Photon.Hashtable();
         //플레이어가 선택한 숫자를 넣어주는 해쉬테이블생성
-        if (gameObject.GetComponent<PhotonView>().IsMine)
-        {//만약 포톤뷰가 자기꺼라면,
             string inputnumber = PlayerInputField.text.Trim();
             inputnumber = inputnumber.Replace("\u200B", "");
 
@@ -255,8 +297,66 @@ public class Scene3Timer : MonoBehaviourPunCallbacks
             playerPickNumbers.Add("ChooseNumber", playerPickValue);
 
             PhotonNetwork.LocalPlayer.SetCustomProperties(playerPickNumbers);
-        }
+            foreach (GameObject textObject in Round1Text)
+            {
+                textObject.SetActive(false);
+            }
+            Roundwait.SetActive(true);
+
+
     }
 
+    private IEnumerator RoundGame(int round)
+    {
+        timerText.gameObject.SetActive(false);
 
+        Round1Question.SetActive(false);
+       
+        Round1Result.SetActive(true);
+        for (int i = 0; i < PhotonNetwork.PlayerList.Length; i++)
+        {
+            Playername[i].text = PhotonNetwork.PlayerList[i].NickName; 
+
+            object chooseNumberObj;
+            if (PhotonNetwork.PlayerList[i].CustomProperties.TryGetValue("ChooseNumber", out chooseNumberObj))
+            {
+                if (chooseNumberObj is int chooseNumber)
+                {
+                    Playernumber[i].text = chooseNumber.ToString();
+                }
+                else
+                {
+                    Playernumber[i].text = "N/A"; //이때 이제, Null값이니까 Flag를 세워서 WinFlag를 만들어
+                }
+            }
+            else
+            {
+                Playernumber[i].text = "N/A"; //이제, Null값이니까 Flag를 세워서 WinFlag를 만들어
+            }
+        }
+
+        yield return new WaitForSeconds(8);
+
+        Round1Result.SetActive(false);
+        Round1Question.SetActive(true);
+        foreach (GameObject title in RoundTitles)
+        {
+            title.SetActive(false);
+        }
+        RoundTitles[round-1].SetActive(true);
+        timerText.gameObject.SetActive(true);
+        foreach (GameObject textObject in Round1Text)
+        {
+            textObject.SetActive(true);
+
+        }
+        Roundwait.SetActive(false);
+
+
+    }
+    private IEnumerator PrepareForRound()
+    {
+        PhotonNetwork.LocalPlayer.SetCustomProperties(new ExitGames.Client.Photon.Hashtable { { "ChooseNumber", null } });
+        yield return null;
+    }
 }

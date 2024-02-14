@@ -59,10 +59,9 @@ public class MainManager : MonoBehaviourPunCallbacks{
         Vector3 Playerposition = new Vector3(-49.94627f, -0.165f, 9.093761f);
         PhotonNetwork.Instantiate(PlayerPrefab.name, Playerposition, Quaternion.identity);
         for (int i = 0; i < PhotonNetwork.PlayerList.Length; i++)
-        {
-            NicknameTexts[i].text = PhotonNetwork.PlayerList[i].NickName;
-
-        }
+            {
+                NicknameTexts[i].text = PhotonNetwork.PlayerList[i].NickName;
+            }
         PhotonNetwork.AutomaticallySyncScene = true;
 
     }
