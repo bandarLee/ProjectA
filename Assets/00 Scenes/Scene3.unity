@@ -19899,7 +19899,7 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 877209332}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 3, y: 3, z: 1}
   m_ConstrainProportionsScale: 0
@@ -19908,7 +19908,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -19.8, y: 415.8}
+  m_AnchoredPosition: {x: -23, y: 473}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &877209334
@@ -25661,7 +25661,6 @@ MonoBehaviour:
   Image5: {fileID: 528819657}
   Sit: {fileID: 2123407237}
   Sit2: {fileID: 1900522577}
-  time: 0
   timerText: {fileID: 877209335}
   Rule1: {fileID: 1791692170}
   liveText1: {fileID: 1497429417}
@@ -25669,13 +25668,13 @@ MonoBehaviour:
   liveText3: {fileID: 1197183850}
   PressEText: {fileID: 1319632865}
   InputArea: {fileID: 0}
-  ValueInput: 0
   fadeDuration: 1
   DeathEnding: {fileID: 1522747758}
   Round1Question: {fileID: 2049922431}
   Round2Question: {fileID: 0}
   Round3Question: {fileID: 0}
   Round4Question: {fileID: 0}
+  PlayerInputField: {fileID: 986733341}
   PV: {fileID: 1073260801}
 --- !u!114 &1073260801
 MonoBehaviour:
@@ -45017,7 +45016,6 @@ RectTransform:
   m_LocalScale: {x: 0, y: 0, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 877209333}
   - {fileID: 1319632864}
   - {fileID: 2123407238}
   - {fileID: 1900522578}
@@ -45034,6 +45032,7 @@ RectTransform:
   - {fileID: 1688652530}
   - {fileID: 837758291}
   - {fileID: 528819658}
+  - {fileID: 877209333}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -47627,13 +47626,13 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: 
-        m_MethodName: 
+      - m_Target: {fileID: 1073260800}
+        m_TargetAssemblyTypeName: Scene3Timer, Assembly-CSharp
+        m_MethodName: EnterNumber
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: 
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
           m_StringArgument: 

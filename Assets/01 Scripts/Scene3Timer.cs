@@ -19,7 +19,6 @@ public class Scene3Timer : MonoBehaviourPunCallbacks
     public GameObject Image5;
     public GameObject Sit;
     public GameObject Sit2;
-    public int time = 0;
     public TMP_Text timerText;
 
     public GameObject Rule1;
@@ -37,7 +36,6 @@ public class Scene3Timer : MonoBehaviourPunCallbacks
     private CanvasGroup canvasGroup5;
 
     public TextMeshProUGUI InputArea;
-    public int ValueInput;
 
     private CanvasGroup ruleText1;
     private CanvasGroup ruleText2;
@@ -51,6 +49,8 @@ public class Scene3Timer : MonoBehaviourPunCallbacks
     public GameObject Round2Question;
     public GameObject Round3Question;
     public GameObject Round4Question;
+
+    public TMP_Text PlayerInputField;
 
     public PhotonView PV;
 
@@ -81,82 +81,71 @@ public class Scene3Timer : MonoBehaviourPunCallbacks
 
     void Start()
     {
-        StartTimer();
+        StartCoroutine(GameSequence());
 
 
     }
-
-    void StartTimer()
+    IEnumerator GameSequence()
     {
-        if (PhotonNetwork.IsMasterClient)
-        {
-            time = 30;
+        yield return StartCoroutine(TimerCoroutine(30)); 
+        yield return StartCoroutine(RuleDescript());
+        yield return StartCoroutine(TimerCoroutine(30));
 
-            StartCoroutine(TimerCoroution(30, () => StartCoroutine(RuleDescript())));
 
-        }
-
-       
     }
+
+
     [PunRPC]
     void StartEndGameSequence()
     {
         StartCoroutine(EndGameSequence());
     }
 
-    IEnumerator TimerCoroution(int duration, Action onComplete)
+    IEnumerator TimerCoroutine(int duration)
     {
-        var wait = new WaitForSeconds(1f);
-
-        while (true)
+        if (PhotonNetwork.IsMasterClient)
         {
-            yield return wait;
 
-            if (time > 0)
+            var wait = new WaitForSeconds(1f);
+
+            while (duration > 0)
             {
-                PV.RPC("ShowTimer", RpcTarget.All, time); //1초 마다 방 모두에게 전달
-
-                time -= 1;
-
+                PV.RPC("ShowTimer", RpcTarget.All, duration);
+                duration--;
+                yield return wait;
             }
 
+            PV.RPC("ShowTimer", RpcTarget.All, duration); // 마지막 시간 업데이트
 
-            if (time <= 0)
+            // 타이머가 끝나면 룰 설명 시작
+
+
+
+
+            /*foreach (Player player in PhotonNetwork.PlayerList)
             {
-                PV.RPC("ShowTimer", RpcTarget.All, time); //1초 마다 방 모두에게 전달
+                if ((int)player.CustomProperties["Scene3sitorder"] == 0)
+                {
+                    string personality = player.CustomProperties["Personality"] as string;
+                    string nickname = player.NickName as string;
 
 
+                    deathPlayersInfo.Add("자칭 " + personality + " " + nickname + ",\n");
 
-                break;
+
+                }
+
+
             }
+            string deathPlayersStr = string.Join("\n", deathPlayersInfo);
+
+            PV.RPC("UpdateDeathPlayersInfo", RpcTarget.AllBuffered, deathPlayersStr);
+
+
+
+            PV.RPC("StartEndGameSequence", RpcTarget.All);*/
 
         }
-
-
-        foreach (Player player in PhotonNetwork.PlayerList)
-        {
-            if ((int)player.CustomProperties["Scene3sitorder"] == 0)
-            {
-                string personality = player.CustomProperties["Personality"] as string;
-                string nickname = player.NickName as string;
-
-
-                deathPlayersInfo.Add("자칭 " + personality + " " + nickname + ",\n");
-
-
-            }
-
-
-        }
-        string deathPlayersStr = string.Join("\n", deathPlayersInfo);
-
-        PV.RPC("UpdateDeathPlayersInfo", RpcTarget.AllBuffered, deathPlayersStr);
-
-
-
-        PV.RPC("StartEndGameSequence", RpcTarget.All);
-
-
 
     }
     [PunRPC]
@@ -227,6 +216,7 @@ public class Scene3Timer : MonoBehaviourPunCallbacks
 
     private IEnumerator RuleDescript()
     {
+        timerText.gameObject.SetActive(false);
         Sit.SetActive(false);
         Sit2.SetActive(false);
         Rule1.SetActive(true);
@@ -246,7 +236,27 @@ public class Scene3Timer : MonoBehaviourPunCallbacks
         Rule1.SetActive(false);
         RuleDescriptEnd = true;
         Round1Question.SetActive(true);
+        timerText.gameObject.SetActive(true);
+
 
     }
+
+    public void EnterNumber()
+    {
+        ExitGames.Client.Photon.Hashtable playerPickNumbers = new ExitGames.Client.Photon.Hashtable();
+        //플레이어가 선택한 숫자를 넣어주는 해쉬테이블생성
+        if (gameObject.GetComponent<PhotonView>().IsMine)
+        {//만약 포톤뷰가 자기꺼라면,
+            string inputnumber = PlayerInputField.text.Trim();
+            inputnumber = inputnumber.Replace("\u200B", "");
+
+            int playerPickValue = int.Parse(inputnumber);
+
+            playerPickNumbers.Add("ChooseNumber", playerPickValue);
+
+            PhotonNetwork.LocalPlayer.SetCustomProperties(playerPickNumbers);
+        }
+    }
+
+
 }
-    
