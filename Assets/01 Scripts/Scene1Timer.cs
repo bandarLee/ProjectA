@@ -137,6 +137,8 @@ public class Scene1Timer : MonoBehaviourPunCallbacks
         ExitGames.Client.Photon.Hashtable playerProperties = PhotonNetwork.LocalPlayer.CustomProperties;
 
         int scene1order = (int)PhotonNetwork.LocalPlayer.CustomProperties["Scene1order"];
+        AssignNewMasterClient();
+
         if (scene1order == 1)
         {
             SceneManager.LoadScene("Scene3");
@@ -148,6 +150,23 @@ public class Scene1Timer : MonoBehaviourPunCallbacks
             PhotonNetwork.LeaveRoom();
             PhotonNetwork.Disconnect();
         }
+        void AssignNewMasterClient()
+        {
+            if ((int)PhotonNetwork.MasterClient.CustomProperties["Scene1order"] != 1)
+            {
+                Player[] players = PhotonNetwork.PlayerList;
+
+                foreach (Player player in players)
+                {
+                    if ((int)player.CustomProperties["Scene1order"] == 1)
+                    {
+                        PhotonNetwork.SetMasterClient(player);
+                        break; 
+                    }
+                }
+            }
+        }
+
 
     }
 

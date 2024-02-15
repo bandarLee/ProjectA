@@ -5,7 +5,7 @@ using Photon.Pun;
 public class PlayerMovement : MonoBehaviourPun
 {
     public static float moveSpeed = 5f; // 앞뒤 움직임의 속도
-    public float rotateSpeed = 180f; // 좌우 회전 속도
+    public float rotateSpeed = 90f; // 좌우 회전 속도
 
     private Animator playerAnimator; // 플레이어 캐릭터의 애니메이터
     private PlayerInput playerInput; // 플레이어 입력을 알려주는 컴포넌트

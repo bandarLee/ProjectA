@@ -9,6 +9,8 @@ using Unity.VisualScripting;
 using UnityEngine.SceneManagement;
 using ExitGames.Client.Photon;
 using System;
+using System.Reflection;
+using UnityEditor;
 
 public class Scene3Timer : MonoBehaviourPunCallbacks
 {
@@ -61,6 +63,9 @@ public class Scene3Timer : MonoBehaviourPunCallbacks
     
     public PhotonView PV;
 
+    public Player winner;
+
+    public TMP_Text PlayerHealth;
     void Awake()
     {
 
@@ -115,6 +120,7 @@ void Start()
         yield return PrepareForRound();
 
         yield return StartCoroutine(TimerCoroutine(30));
+        yield return StartCoroutine(RoundGame(6));
 
 
     }
@@ -149,34 +155,8 @@ void Start()
             yield return new WaitUntil(() => timerEnded); // `timerEnded`는 타이머 종료 상태를 나타내는 bool 변수입니다.
         }
     
+  
 
-    // 타이머가 끝나면 룰 설명 시작
-
-
-
-
-    /*foreach (Player player in PhotonNetwork.PlayerList)
-    {
-        if ((int)player.CustomProperties["Scene3sitorder"] == 0)
-        {
-            string personality = player.CustomProperties["Personality"] as string;
-            string nickname = player.NickName as string;
-
-
-            deathPlayersInfo.Add("자칭 " + personality + " " + nickname + ",\n");
-
-
-        }
-
-
-    }
-    string deathPlayersStr = string.Join("\n", deathPlayersInfo);
-
-    PV.RPC("UpdateDeathPlayersInfo", RpcTarget.AllBuffered, deathPlayersStr);
-
-
-
-    PV.RPC("StartEndGameSequence", RpcTarget.All);*/
 
 }
 
@@ -208,12 +188,14 @@ void Start()
         Image3.SetActive(false);
         ExitGames.Client.Photon.Hashtable playerProperties = PhotonNetwork.LocalPlayer.CustomProperties;
 
-        int scene1order = (int)PhotonNetwork.LocalPlayer.CustomProperties["Scene1order"];
-        if (scene1order == 1)
+        int scene3order = (int)PhotonNetwork.LocalPlayer.CustomProperties["Health"];
+
+        AssignNewMasterClient3();
+        if (scene3order > 0)
         {
-            SceneManager.LoadScene("Scene3");
+            SceneManager.LoadScene("Main");
         }
-        else if (scene1order == 0)
+        else if (scene3order <= 0)
         {
             Image5.SetActive(true);
             Image4.SetActive(false);
@@ -236,7 +218,7 @@ void Start()
     [PunRPC]
     void UpdateDeathPlayersInfo(string playersInfo)
     {
-        DeathEnding.text = string.Join("\n", playersInfo) + "\n불타버려 던전 탐사 1분만에 죽었습니다.";
+        DeathEnding.text = string.Join("\n", playersInfo) + "\n심판자의 처형을 받아 장렬히 산화했습니다.";
     }
     [PunRPC]
 
@@ -313,6 +295,41 @@ void Start()
         Round1Question.SetActive(false);
        
         Round1Result.SetActive(true);
+        float total = 0;
+        int count = 0;
+        foreach (Player player in PhotonNetwork.PlayerList)
+        {
+            object chooseNumberObj;
+            if (player.CustomProperties.TryGetValue("ChooseNumber", out chooseNumberObj) && chooseNumberObj is int chooseNumber)
+            {
+                total += chooseNumber;
+                count++;
+            }
+        }
+        float average = count > 0 ? total / count : 0;
+        float resultNumber = average * 0.8f; // 계산된 평균의 0.8배
+
+        // 가장 결과에 가까운 플레이어 찾기
+        string closestPlayer = "";
+        float closestDistance = float.MaxValue;
+        foreach (Player player in PhotonNetwork.PlayerList)
+        {
+            object chooseNumberObj;
+            if (player.CustomProperties.TryGetValue("ChooseNumber", out chooseNumberObj) && chooseNumberObj is int chooseNumber)
+            {
+                float distance = Mathf.Abs(chooseNumber - resultNumber);
+                if (distance < closestDistance)
+                {
+                    closestDistance = distance;
+                    closestPlayer = player.NickName;
+                    winner = player;
+                }
+            }
+        }
+
+        // 결과 표시
+        resultnumber.text = $"{resultNumber:F0}";
+        resultnotice.text = $"평균 숫자 {average:F2} * 0.8 = {resultNumber:F2}로 \n 평균에서 가장 가까운, {closestPlayer} 승리";
         for (int i = 0; i < PhotonNetwork.PlayerList.Length; i++)
         {
             Playername[i].text = PhotonNetwork.PlayerList[i].NickName; 
@@ -332,12 +349,14 @@ void Start()
             else
             {
                 Playernumber[i].text = "N/A"; //이제, Null값이니까 Flag를 세워서 WinFlag를 만들어
-            }
+            }  
         }
 
         yield return new WaitForSeconds(8);
 
         Round1Result.SetActive(false);
+        DecreaseHealthForAllExceptWinner(winner);
+
         Round1Question.SetActive(true);
         foreach (GameObject title in RoundTitles)
         {
@@ -354,9 +373,74 @@ void Start()
 
 
     }
+    void AssignNewMasterClient3()
+    {
+        if ((int)PhotonNetwork.MasterClient.CustomProperties["Health"] <= 0)
+        {
+            Player[] players = PhotonNetwork.PlayerList;
+
+            foreach (Player player in players)
+            {
+                if ((int)player.CustomProperties["Health"] > 0)
+                {
+                    PhotonNetwork.SetMasterClient(player);
+                    break;
+                }
+            }
+        }
+    }
     private IEnumerator PrepareForRound()
     {
         PhotonNetwork.LocalPlayer.SetCustomProperties(new ExitGames.Client.Photon.Hashtable { { "ChooseNumber", null } });
         yield return null;
+    }
+    void DecreaseHealthForAllExceptWinner(Player winner)
+    {
+        if (PhotonNetwork.IsMasterClient)
+        {
+            foreach (Player player in PhotonNetwork.PlayerList)
+            {
+                if (player != winner)
+                {
+                    // 현재 체력을 가져옵니다.
+                    int currentHealth = (int)player.CustomProperties["Health"];
+                    int newHealth = currentHealth - 1;
+
+                    ExitGames.Client.Photon.Hashtable props = new ExitGames.Client.Photon.Hashtable { { "Health", currentHealth - 1 } };
+                    player.SetCustomProperties(props);
+                    if (newHealth <= 0)
+                    {
+                        string personality = player.CustomProperties["Personality"] as string;
+                        string nickname = player.NickName as string;
+
+
+                        deathPlayersInfo.Add("자칭 " + personality + " " + nickname + ",\n");
+                        string deathPlayersStr = string.Join("\n", deathPlayersInfo);
+                        PV.RPC("UpdateDeathPlayersInfo", RpcTarget.AllBuffered, deathPlayersStr);
+
+
+
+                        PV.RPC("StartEndGameSequence", RpcTarget.All);
+                    }
+                }
+            }
+        }
+    }
+    public override void OnPlayerPropertiesUpdate(Player targetPlayer, ExitGames.Client.Photon.Hashtable changedProps)
+    {
+        base.OnPlayerPropertiesUpdate(targetPlayer, changedProps);
+
+        // 체력 정보가 변경되었는지 확인합니다.
+        if (changedProps.ContainsKey("Health"))
+        {
+            // 변경된 체력 값을 가져옵니다.
+            int updatedHealth = (int)changedProps["Health"];
+
+            // 현재 로컬 플레이어의 체력 정보를 업데이트합니다.
+            if (targetPlayer == PhotonNetwork.LocalPlayer)
+            {
+                PlayerHealth.text = $"현재 체력 : {updatedHealth}";
+            }
+        }
     }
 }

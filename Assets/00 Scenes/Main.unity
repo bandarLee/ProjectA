@@ -38948,7 +38948,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3ded36cdeb144b249a87a79f0a2dc523, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  sceneToLoad: Scene1
+  sceneToLoad: Scene3
 --- !u!4 &953519370 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6087605400698131546, guid: 0df972d6e036fee43a83d1fcd9fd2c35,

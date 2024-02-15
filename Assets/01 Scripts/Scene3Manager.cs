@@ -2,6 +2,7 @@ using Photon.Pun;
 using System.Collections.Generic;
 using UnityEngine;
 using ExitGames.Client.Photon;
+using Photon.Realtime;
 
 public class Scene3Manager : MonoBehaviourPunCallbacks
 {
@@ -31,6 +32,8 @@ public class Scene3Manager : MonoBehaviourPunCallbacks
             // 자신을 파괴
             Destroy(gameObject);
         }
+        InitializePlayerHealth();
+
     }
     void Start()
     {
@@ -47,5 +50,14 @@ public class Scene3Manager : MonoBehaviourPunCallbacks
     void Update()
     {
         
+    }
+    void InitializePlayerHealth()
+    {
+        foreach (Player player in PhotonNetwork.PlayerList)
+        {
+            // 체력을 3으로 설정합니다.
+            Hashtable initialProps = new Hashtable { { "Health", 3 } };
+            player.SetCustomProperties(initialProps);
+        }
     }
 }
