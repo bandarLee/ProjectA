@@ -33,18 +33,18 @@ public class Scene3Manager : MonoBehaviourPunCallbacks
             Destroy(gameObject);
         }
         InitializePlayerHealth();
-
-    }
-    void Start()
-    {
         PV = photonView;
-        Vector3 Playerposition = new Vector3(-27.58f, -15.89f, 8.58f);
+        Vector3 Playerposition = new Vector3(-18.19f, -15f, -11.7f);
         PhotonNetwork.Instantiate(PlayerPrefab.name, Playerposition, Quaternion.identity);
 
         Hashtable playerProperties = new Hashtable();
 
 
         PhotonNetwork.LocalPlayer.SetCustomProperties(playerProperties);
+    }
+    void Start()
+    {
+   
     }
 
     void Update()

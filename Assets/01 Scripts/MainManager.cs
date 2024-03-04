@@ -8,11 +8,12 @@ using UnityEngine.UI;
 using UnityEngine.SocialPlatforms.Impl;
 using System.Linq;
 using System;
+using Cinemachine;
 
 public class MainManager : MonoBehaviourPunCallbacks{
     PhotonView PV;
     public Text[] NicknameTexts;
-
+    public bool IsGameEnd = false;
     public static MainManager instance
     {
         get
@@ -34,7 +35,8 @@ public class MainManager : MonoBehaviourPunCallbacks{
     private string m_Name;
     public bool IsGameover { get; private set; } // 게임 오버 상태
 
-
+    public CinemachineVirtualCamera cinematicCamera;
+    public CinemachineVirtualCamera playerCamera;
 
     [PunRPC]
     public void UpdateNickname(string nickname)
@@ -52,6 +54,8 @@ public class MainManager : MonoBehaviourPunCallbacks{
             // 자신을 파괴
             Destroy(gameObject);
         }
+        StartCinematic();
+
     }
     void Start()
     {
@@ -65,6 +69,13 @@ public class MainManager : MonoBehaviourPunCallbacks{
         PhotonNetwork.AutomaticallySyncScene = true;
 
     }
+    public void StartCinematic()
+    {
+        cinematicCamera.Priority = 11;
+        playerCamera.Priority = 9;
+
+        Invoke("EndCinematicAndSpawnPlayer", 16.5f); 
+    }
     public override void OnPlayerEnteredRoom(Photon.Realtime.Player newPlayer)
     {
         base.OnPlayerEnteredRoom(newPlayer);
@@ -75,7 +86,14 @@ public class MainManager : MonoBehaviourPunCallbacks{
 
         }
     }
+    void EndCinematicAndSpawnPlayer()
+    {
+        cinematicCamera.Priority = 9;
+        playerCamera.Priority = 11;
 
+
+
+    }
     void Update()
     {
             
@@ -96,4 +114,5 @@ public class MainManager : MonoBehaviourPunCallbacks{
 
 
     }
+
 }
