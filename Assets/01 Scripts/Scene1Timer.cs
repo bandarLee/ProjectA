@@ -8,6 +8,7 @@ using TMPro;
 using Unity.VisualScripting;
 using UnityEngine.SceneManagement;
 using ExitGames.Client.Photon;
+using Cinemachine;
 
 public class Scene1Timer : MonoBehaviourPunCallbacks
 {
@@ -28,9 +29,15 @@ public class Scene1Timer : MonoBehaviourPunCallbacks
     List<string> deathPlayersInfo = new List<string>();
 
     public PhotonView PV;
+    public CinemachineVirtualCamera cinematicCamera;
+    public CinemachineVirtualCamera playerCamera;
+
+    public GameObject cave;
+    public GameObject stage;
 
     void Awake()
     {
+        cave.SetActive(false);
         Image1.SetActive(false);
         Image2.SetActive(false);
         Image3.SetActive(false);
@@ -41,15 +48,36 @@ public class Scene1Timer : MonoBehaviourPunCallbacks
         canvasGroup3 = Image3.GetComponent<CanvasGroup>();
         canvasGroup4 = Image4.GetComponent<CanvasGroup>();
         canvasGroup5 = Image5.GetComponent<CanvasGroup>();
+        
+        StartCinematic();
+
     }
-    void Start()
+    public void StartCinematic()
     {
+        cinematicCamera.Priority = 11;
+        playerCamera.Priority = 9;
+
+        Invoke("EndCinematicAndSpawnPlayer", 5f);
+    }
+
+    void EndCinematicAndSpawnPlayer()
+    {
+        cinematicCamera.Priority = 9;
+
+        playerCamera.Priority = 11;
         StartTimer();
 
 
     }
+    void Start()
+    {
+        AudioManager.instance.PlayAudio(0);
+
+    }
     void StartTimer()
     {
+        cave.SetActive(true);
+
         if (PhotonNetwork.IsMasterClient)
         {
             time = 60;
@@ -70,7 +98,10 @@ public class Scene1Timer : MonoBehaviourPunCallbacks
         while (true)
         {
             yield return wait;
-
+            if (time == 10)
+            {
+                PV.RPC("PlayTenSecondsLeftAudio", RpcTarget.All);
+            }
             if (time > 0)
             {
                 PV.RPC("ShowTimer", RpcTarget.All, time); //1초 마다 방 모두에게 전달
@@ -118,8 +149,11 @@ public class Scene1Timer : MonoBehaviourPunCallbacks
 
     IEnumerator EndGameSequence()
     {
+        PV.RPC("DeactivateCaveAndStage", RpcTarget.All);
 
         Image1.SetActive(true);
+        AudioManager.instance.PlayAudio(2);
+
         StartCoroutine(FadeCanvasGroup(canvasGroup1, 0f, 1f, fadeDuration));
         yield return new WaitForSeconds(4);
         Image2.SetActive(true);
@@ -137,6 +171,8 @@ public class Scene1Timer : MonoBehaviourPunCallbacks
         ExitGames.Client.Photon.Hashtable playerProperties = PhotonNetwork.LocalPlayer.CustomProperties;
 
         int scene1order = (int)PhotonNetwork.LocalPlayer.CustomProperties["Scene1order"];
+        AssignNewMasterClient();
+
         if (scene1order == 1)
         {
             SceneManager.LoadScene("Scene3");
@@ -148,6 +184,23 @@ public class Scene1Timer : MonoBehaviourPunCallbacks
             PhotonNetwork.LeaveRoom();
             PhotonNetwork.Disconnect();
         }
+        void AssignNewMasterClient()
+        {
+            if ((int)PhotonNetwork.MasterClient.CustomProperties["Scene1order"] != 1)
+            {
+                Player[] players = PhotonNetwork.PlayerList;
+
+                foreach (Player player in players)
+                {
+                    if ((int)player.CustomProperties["Scene1order"] == 1)
+                    {
+                        PhotonNetwork.SetMasterClient(player);
+                        break; 
+                    }
+                }
+            }
+        }
+
 
     }
 
@@ -162,9 +215,21 @@ public class Scene1Timer : MonoBehaviourPunCallbacks
         timerText.text = number.ToString(); //타이머 갱신
     }
     [PunRPC]
+    void PlayTenSecondsLeftAudio()
+    {
+        AudioManager.instance.PlayAudio(1);
+    }
+    [PunRPC]
     void UpdateDeathPlayersInfo(string playersInfo)
     {
-        DeathEnding.text = string.Join("\n", playersInfo) + "\n불타버려 던전 탐사 1분만에 죽었습니다.";
+        if (string.IsNullOrEmpty(playersInfo))
+        {
+            DeathEnding.text = "\n\n\n아직은 아무도 안죽었습니다.";
+        }
+        else
+        {
+            DeathEnding.text = playersInfo + "\n불타버려 던전 탐사 1분만에 죽었습니다.";
+        }
     }
     [PunRPC]
 
@@ -178,5 +243,11 @@ public class Scene1Timer : MonoBehaviourPunCallbacks
             yield return null;
         }
         cg.alpha = end;
+    }
+    [PunRPC]
+    void DeactivateCaveAndStage()
+    {
+        cave.SetActive(false);
+        stage.SetActive(false);
     }
 }
