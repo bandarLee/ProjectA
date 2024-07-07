@@ -47,6 +47,16 @@ MonoBehaviour:
   - FadeCanvasGroup
   - StartEndGameSequence
   - NotifyTimerEnd
+  - EndGameSequence2
+  - StartEndGameSequence2
+  - DestroyItem
+  - SetWeaponActive
+  - RequestDestroy
+  - TakeDamage
+  - RequestMonsterDeath
+  - ChangeStateToSearch
+  - PlayTenSecondsLeftAudio
+  - DeactivateCaveAndStage
   DisableAutoOpenWizard: 1
   ShowSettings: 1
   DevRegionSetOnce: 1

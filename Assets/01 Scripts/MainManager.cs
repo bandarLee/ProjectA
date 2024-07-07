@@ -94,10 +94,7 @@ public class MainManager : MonoBehaviourPunCallbacks{
 
 
     }
-    void Update()
-    {
-            
-    }
+
     public override void OnPlayerLeftRoom(Photon.Realtime.Player otherPlayer)
     {
         base.OnPlayerLeftRoom(otherPlayer);

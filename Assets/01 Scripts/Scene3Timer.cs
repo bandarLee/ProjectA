@@ -52,7 +52,7 @@ public class Scene3Timer : MonoBehaviourPunCallbacks
     private CanvasGroup ruleText2;
     private CanvasGroup ruleText3;
 
-    public float fadeDuration = 1f; // 페이드 지속 시간
+    public float fadeDuration = 1f;
     public TMP_Text DeathEnding;
     List<string> deathPlayersInfo = new List<string>();
 
@@ -180,7 +180,7 @@ public class Scene3Timer : MonoBehaviourPunCallbacks
 
                 PV.RPC("StartEndGameSequence2", RpcTarget.All);
             }
-            yield break; // 추가 진행을 중단
+            yield break; 
         }
 
         yield return StartCoroutine(RuleDescript());
@@ -254,8 +254,7 @@ public class Scene3Timer : MonoBehaviourPunCallbacks
     [PunRPC]
     void NotifyTimerEnd()
     {
-        timerEnded = true; // 모든 클라이언트에서 타이머가 끝났음을 나타내는 변수를 true로 설정합니다.
-                           // 필요한 경우, 여기에서 다음 단계로 진행하는 로직을 구현할 수도 있습니다.
+        timerEnded = true; // 모든 클라이언트에서 타이머가 끝났음을 나타내는 변수를 true로 설정
     }
     [PunRPC]
     void PlayTenSecondsLeftAudio()
@@ -290,11 +289,11 @@ public class Scene3Timer : MonoBehaviourPunCallbacks
         int scene3order = (int)PhotonNetwork.LocalPlayer.CustomProperties["Health"];
 
         AssignNewMasterClient3();
-        if (scene3order > 0)
+        if (scene3order > -10)
         {
             SceneManager.LoadScene("Scene4");
         }
-        else if (scene3order <= 0)
+        else if (scene3order == -10)
         {
             Image5.SetActive(true);
             Image4.SetActive(false);
@@ -703,7 +702,13 @@ public class Scene3Timer : MonoBehaviourPunCallbacks
 
                     string personality = selectedPlayer.CustomProperties["Personality"] as string;
                     string nickname = selectedPlayer.NickName as string;
-                    PlayerMovement.isPositionFixed = false;
+                ExitGames.Client.Photon.Hashtable props = new ExitGames.Client.Photon.Hashtable
+                    {
+                        { "Health", -10 }//선택된 한명의 사망 플레이어
+                    };
+                selectedPlayer.SetCustomProperties(props);
+
+                PlayerMovement.isPositionFixed = false;
 
 
                     deathPlayersInfo.Add("자칭 " + personality + " " + nickname + ",\n");
@@ -723,13 +728,13 @@ public class Scene3Timer : MonoBehaviourPunCallbacks
     {
         base.OnPlayerPropertiesUpdate(targetPlayer, changedProps);
 
-        // 체력 정보가 변경되었는지 확인합니다.
+        // 체력 정보가 변경되었는지 확인
         if (changedProps.ContainsKey("Health"))
         {
-            // 변경된 체력 값을 가져옵니다.
+            // 변경된 체력 값을 가져오기
             int updatedHealth = (int)changedProps["Health"];
 
-            // 현재 로컬 플레이어의 체력 정보를 업데이트합니다.
+            // 현재 로컬 플레이어의 체력 정보를 업데이트
             if (targetPlayer == PhotonNetwork.LocalPlayer)
             {
                 PlayerHealth.text = $"현재 체력 : {updatedHealth}";
